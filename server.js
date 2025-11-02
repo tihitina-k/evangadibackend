@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 // Middleware
 const allowedOrigins =
   process.env.NODE_ENV === "production"
-    ? ["https://evangadifront.vercel.app"]
+    ? ["https://evangadifront-npmu.vercel.app"]
     : ["http://localhost:5173"];
 
 app.use(express.json());
