@@ -6,29 +6,29 @@ const dbConnection = require("./config/dbConfig");
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware: CORS
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://evangadifront-npmu.vercel.app"]
-    : ["http://localhost:5173"];
+// ✅ CORS Middleware: production-only origin
+const allowedOrigins = ["https://evangadifront-npmu.vercel.app"];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like Postman or server-to-server)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true); // allow this origin
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS")); // reject other origins
+        console.warn("🚫 Blocked by CORS:", origin);
+        callback(null, false);
       }
     },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
 
-// Middleware: parse JSON
+// Handle preflight requests
+app.options("*", cors());
+
+// Parse JSON requests
 app.use(express.json());
 
 // Routes
@@ -37,7 +37,7 @@ app.use("/api/v1/user", require("./routes/userRoutes"));
 app.use("/api/v1", require("./routes/questionRoute"));
 app.use("/api/v1", require("./routes/answerRoute"));
 
-// Start server
+// Start server with DB check
 async function start() {
   try {
     await dbConnection.execute("SELECT 'test'");
@@ -45,7 +45,7 @@ async function start() {
     app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
   } catch (err) {
     console.error("❌ Database error:", err.message);
-    process.exit(1);
+    process.exit(1); // Stop server if DB fails
   }
 }
 
