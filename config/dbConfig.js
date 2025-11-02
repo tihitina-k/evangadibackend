@@ -1,26 +1,46 @@
-
 const mysql2 = require("mysql2");
-// const fs = require("fs");
-const dotenv = require("dotenv");
-dotenv.config();
+const path = require("path");
 
-const dbConnection = mysql2.createPool({
-  host: process.env.DB_HOST, 
-  port: process.env.DB_PORT, 
+// Load correct .env file based on NODE_ENV
+require("dotenv").config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? path.resolve(__dirname, "../.env.production")
+      : path.resolve(__dirname, "../.env.development"),
+});
+
+// Build database configuration
+const dbConfig = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_DATABASE,
-  connectionLimit:20,
-  //   process.env.CONNECTION_LIMIT || process.env.DB_CONNECTION_LIMIT,
-  // ssl: {
-  //   ca: fs.readFileSync(process.env.DB_SSL_CA), // path to ca.pem
-  // },
+  connectionLimit: process.env.DB_CONNECTION_LIMIT || 10,
+};
+
+// Optional SSL configuration for production DBs
+if (process.env.DB_SSL === "true") {
+  dbConfig.ssl = {
+    rejectUnauthorized: true,
+    ca: process.env.DB_SSL_CA, // path to CA cert
+  };
+}
+
+// Create the pool
+const dbConnection = mysql2.createPool(dbConfig);
+
+// Test the connection
+dbConnection.getConnection((err, connection) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+  } else {
+    console.log("Database connected successfully");
+    connection.release();
+  }
 });
 
 module.exports = dbConnection.promise();
-
-
-
 
 // const mysql2 = require("mysql2");
 // const dotenv = require("dotenv");

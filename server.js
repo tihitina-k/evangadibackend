@@ -1,57 +1,35 @@
-
 require("dotenv").config();
-
 const express = require("express");
-const app = express();
-const authMiddleware = require("./middleware/authMiddleware");
 const cors = require("cors");
-
-const port = process.env.PORT || 5000;
-
-//db connection
 const dbConnection = require("./config/dbConfig");
 
-// test get request
-app.get("/", (req, res) => {
-  res.status(200).send("welcome-to Evangadi-");
-});
-//cors middleware
-app.use(
-  cors({
-    origin: ["https://evangadifront.vercel.app", "http://localhost:5173"],
-    credentials: true,
-  })
-);
+const app = express();
+const port = process.env.PORT || 5000;
 
-//json middleware
+// Middleware
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? ["https://evangadifront.vercel.app"]
+    : ["http://localhost:5173"];
+
 app.use(express.json());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 
-// user routes middleware file import
-const userRoutes = require("./routes/userRoutes");
+// Routes
+app.get("/", (req, res) => res.send("Welcome to Evangadi API"));
+app.use("/api/v1/user", require("./routes/userRoutes"));
+app.use("/api/v1", require("./routes/questionRoute"));
+app.use("/api/v1", require("./routes/answerRoute"));
 
-// user routes middleware
-app.use("/api/v1/user", userRoutes);
-
-// questions routes middleware file import
-const questionRoutes = require("./routes/questionRoute");
-// questions routes middleware
-app.use("/api/v1", questionRoutes);
-// answers routes middleware file import
-const answerRoutes = require("./routes/answerRoute");
-
-// answers routes middleware
-app.use("/api/v1", answerRoutes);
-
+// Start server
 async function start() {
   try {
-    const result = await dbConnection.execute("select 'test'");
-    console.log("Your database is connected sucessfully ");
-    await app.listen(port);
-    console.log(`server running and listening on port ${port}`);
+    await dbConnection.execute("SELECT 'test'");
+    console.log("✅ Database connected");
+    app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
   } catch (err) {
-    console.log(err.message);
+    console.error("❌ Database error:", err.message);
+    process.exit(1);
   }
 }
-
 start();
-
