@@ -1,4 +1,4 @@
-require("dotenv").config();
+// server.js
 const express = require("express");
 const cors = require("cors");
 const dbConnection = require("./config/dbConfig");
@@ -6,13 +6,13 @@ const dbConnection = require("./config/dbConfig");
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ CORS Middleware: production-only origin
+// ✅ CORS Middleware: only allow frontend production URL
 const allowedOrigins = ["https://evangadifront-npmu.vercel.app"];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or Postman)
+      // Allow requests with no origin (like Postman or mobile apps)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -42,6 +42,7 @@ async function start() {
   try {
     await dbConnection.execute("SELECT 'test'");
     console.log("✅ Database connected");
+
     app.listen(port, () => console.log(`🚀 Server running on port ${port}`));
   } catch (err) {
     console.error("❌ Database error:", err.message);
