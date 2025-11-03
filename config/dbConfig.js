@@ -10,7 +10,7 @@ const dbConfig = {
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
   connectionLimit: process.env.DB_CONNECTION_LIMIT
     ? parseInt(process.env.DB_CONNECTION_LIMIT, 10)
-    : 10,
+    : 2,
 };
 
 // Optional SSL (if required by your production DB)
