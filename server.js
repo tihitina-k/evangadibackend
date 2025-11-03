@@ -6,22 +6,25 @@ const dbConnection = require("./config/dbConfig");
 const app = express();
 const port = process.env.PORT || 5000;
 
-// ✅ CORS Middleware: only allow frontend production URL
-const allowedOrigins = ["https://evangadifront-npmu.vercel.app"];
+// ✅ CORS Middleware: allow frontend production and optional preview URL
+const allowedOrigins = [
+  "https://evangadifront-npmu.vercel.app",
+  "https://evangadifront-npmu-kvtxrgdko-tihitinas-projects.vercel.app", // Vercel preview
+];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman or mobile apps)
+      // Allow requests with no origin (Postman, mobile apps)
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+        callback(null, true); // ✅ correct
       } else {
         console.warn("🚫 Blocked by CORS:", origin);
-        callback(null, false);
+        callback(new Error("Not allowed by CORS")); // send error
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true,
+    credentials: true, // required if frontend sends cookies
   })
 );
 
